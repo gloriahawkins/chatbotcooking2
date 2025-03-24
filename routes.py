@@ -30,10 +30,12 @@ def register_routes(app):
                 session.modified = True
             return redirect(url_for("index"))
 
-        return render_template("index.html", conversation=session["conversation"])
+        return render_template("index.html", conversation=session.get("conversation", []))
 
     @app.route("/clear")
     def clear_chat():
         session.pop("conversation", None)
         session.pop("last_cooking_context", None)
         return redirect(url_for("index"))
+
+
