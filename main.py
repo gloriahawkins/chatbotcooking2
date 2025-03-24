@@ -10,4 +10,4 @@ Session(app)
 register_routes(app)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5042)
+    app.run
