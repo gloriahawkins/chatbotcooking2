@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Culinary Companion</title>
+  <style>
+    /* Reset and base styling */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #eef2f7;
+      color: #333;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    
+    /* Main container with card design */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      max-width: 900px;
+      width: 95%;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+      height: 90vh;
+    }
+    
+    /* Header with gradient */
+    .header {
+      background: linear-gradient(135deg, #4a90e2, #357ABD);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .header .header-links {
+      display: flex;
+      align-items: center;
+    }
+    .header .header-links a {
+      text-decoration: none;
+      font-weight: 500;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+      padding: 0.5rem 1rem;
+      margin-left: 0.5rem;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .header .header-links a:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Chat messages area */
+    .messages {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      background: #f9f9f9;
+      scroll-behavior: smooth;
+    }
+    .message {
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: flex-start;
+    }
+    /* Assistant messages on the left by default */
+    .message.assistant {
+      justify-content: flex-start;
+    }
+    /* User messages on the right */
+    .message.user {
+      justify-content: flex-end;
+    }
+    .message-content {
+      max-width: 75%;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      background: #fff;
+      font-size: 1rem;
+      word-wrap: break-word;
+      white-space: pre-wrap; /* preserve line breaks */
+    }
+    .message.assistant .message-content {
+      background: #f7f7f8;
+      border-left: 4px solid #4a90e2;
+    }
+    
+    /* Icons (only for assistant) */
+    .symbol {
+      font-size: 1.5rem;
+      margin-right: 0.5rem;
+      line-height: 1;
+    }
+    
+    /* Timestamp styling */
+    .timestamp {
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 0.25rem;
+      text-align: right;
+    }
+    
+    /* Input area styling */
+    .input-area {
+      padding: 1rem 1.5rem;
+      background: #fff;
+      box-shadow: 0 -1px 4px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .input-area textarea {
+      flex: 1;
+      resize: none;
+      height: 50px;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      transition: border 0.2s ease;
+    }
+    .input-area textarea:focus {
+      outline: none;
+      border-color: #4a90e2;
+    }
+    .input-area button {
+      margin-left: 1rem;
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      background: #17a2b8;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .input-area button.loading {
+      background: #999;
+      cursor: not-allowed;
+    }
+    .input-area button:hover:not(.loading) {
+      background: #138496;
+    }
+    
+    /* Hide system messages */
+    .system {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🍳 Culinary Companion</h1>
+      <div class="header-links">
+        {% if last_recipe %}
+          <a href="{{ url_for('download_recipe') }}">Download Recipe</a>
+        {% endif %}
+        <a class="clear-chat" href="{{ url_for('clear_chat') }}">Clear Chat</a>
+      </div>
+    </div>
+    
+    <!-- Check if there are any non-system messages -->
+    {% set non_system_msgs = conversation|selectattr("role", "ne", "system")|list %}
+    
+    <!-- Chat messages -->
+    <div class="messages" id="chatMessages">
+      {% if non_system_msgs|length == 0 %}
+        <!-- If NO conversation yet, show typed pinned welcome message -->
+        <div class="message assistant">
+          <span class="symbol">🍳</span>
+          <div class="message-content typing-assistant" data-fulltext="Hi, I am here to help you with all your cooking needs. How can I help today?"></div>
+        </div>
+      {% else %}
+        <!-- If there IS existing conversation, show a static pinned welcome message -->
+        <div class="message assistant">
+          <span class="symbol">🍳</span>
+          <div class="message-content">Hi, I am here to help you with all your cooking needs. How can I help today?</div>
+        </div>
+      {% endif %}
+      
+      <!-- Conversation messages -->
+      {% for msg in conversation %}
+        {% if msg.role == "system" %}
+          {# System messages are hidden #}
+        {% elif msg.role == "assistant" %}
+          <div class="message assistant">
+            <span class="symbol">🍳</span>
+            {% if loop.last %}
+              <div class="message-content typing-assistant" data-fulltext="{{ msg.content|e }}"></div>
+            {% else %}
+              <div class="message-content">{{ msg.content }}</div>
+            {% endif %}
+            {% if msg.timestamp %}
+              <div class="timestamp">{{ msg.timestamp }}</div>
+            {% endif %}
+          </div>
+        {% elif msg.role == "user" %}
+          <div class="message user">
+            <!-- No user icon -->
+            <div class="message-content">{{ msg.content }}</div>
+            {% if msg.timestamp %}
+              <div class="timestamp">{{ msg.timestamp }}</div>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    
+    <!-- Input form -->
+    <form method="POST" class="input-area" id="chatForm">
+      <textarea name="user_input" placeholder="Ask about recipes, ingredients, or cooking tips..." required id="userInput"></textarea>
+      <button type="submit" id="sendButton">Send</button>
+    </form>
+  </div>
+  
+  <!-- JavaScript for AJAX submission, interactive thinking indicator, typewriter effects, and Enter-to-send -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const chatBox = document.getElementById('chatMessages');
+      const userInput = document.getElementById('userInput');
+      const chatForm = document.getElementById('chatForm');
+      const sendButton = document.getElementById('sendButton');
+
+      let autoScroll = true;
+      
+      // Control auto-scroll based on scroll position
+      chatBox.addEventListener('scroll', () => {
+        if (chatBox.scrollTop + chatBox.clientHeight < chatBox.scrollHeight - 20) {
+          autoScroll = false;
+        } else {
+          autoScroll = true;
+        }
+      });
+      
+      // Animate "Thinking..."
+      function startThinkingAnimation() {
+        const thinkingEl = document.getElementById("thinkingMessage");
+        let dots = 0;
+        return setInterval(() => {
+          dots = (dots + 1) % 4;
+          thinkingEl.textContent = "Thinking" + ".".repeat(dots);
+        }, 200);
+      }
+
+      // Typewriter effect for any element with class "typing-assistant"
+      function typeWriterEffect(element) {
+        const fullText = element.dataset.fulltext || "";
+        element.textContent = "";
+        let idx = 0;
+        const speed = 18; // ms per character
+        const interval = setInterval(() => {
+          element.textContent += fullText.charAt(idx);
+          idx++;
+          if (idx >= fullText.length) {
+            clearInterval(interval);
+          }
+          if (autoScroll) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+          }
+        }, speed);
+      }
+      
+      // Apply typewriter effect to pinned welcome or last assistant message
+      document.querySelectorAll('.typing-assistant').forEach(el => {
+        typeWriterEffect(el);
+      });
+      
+      // Core logic for sending a message
+      function sendMessage() {
+        const message = userInput.value.trim();
+        if (!message) return; // don't send empty messages
+        
+        // Append user message immediately
+        const userMessageHTML = `
+          <div class="message user">
+            <div class="message-content">${message}</div>
+          </div>
+        `;
+        chatBox.insertAdjacentHTML('beforeend', userMessageHTML);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        userInput.value = "";
+        
+        // Add a "Thinking..." placeholder for the assistant's response
+        const thinkingHTML = `
+          <div class="message assistant" id="thinkingMessageContainer">
+            <span class="symbol">🍳</span>
+            <div class="message-content" id="thinkingMessage">Thinking</div>
+          </div>
+        `;
+        chatBox.insertAdjacentHTML('beforeend', thinkingHTML);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        
+        // Disable send button and show loading indicator
+        sendButton.textContent = "Loading...";
+        sendButton.classList.add("loading");
+        
+        // Start interactive "Thinking..." animation
+        const thinkingInterval = startThinkingAnimation();
+        
+        // Send AJAX POST request
+        fetch(window.location.href, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ 'user_input': message })
+        })
+        .then(response => response.text())
+        .then(html => {
+          // Stop the thinking animation
+          clearInterval(thinkingInterval);
+          // Reload the page to update conversation
+          window.location.reload();
+        })
+        .catch(err => {
+          console.error("Error:", err);
+          sendButton.textContent = "Send";
+          sendButton.classList.remove("loading");
+        });
+      }
+      
+      // Handle form submission
+      chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        sendMessage();
+      });
+      
+      // Enter-to-send (Shift+Enter for newline)
+      userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

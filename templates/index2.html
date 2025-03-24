@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cooking Assistant Chatbot</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f7f7f7; }
+        h1 { color: #333; }
+        form { margin-bottom: 20px; }
+        textarea { width: 100%; height: 100px; }
+        .response { background: #e0ffe0; padding: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🍳 Cooking Assistant Chatbot</h1>
+    <form method="POST">
+        <textarea name="user_input" placeholder="Ask about your ingredients or recipe ideas..." required>{{ user_input }}</textarea><br><br>
+        <input type="submit" value="Ask">
+    </form>
+
+    {% if response %}
+        <div class="response">
+            <strong>Assistant:</strong><br>
+            {{ response }}
+        </div>
+    {% endif %}
+</body>
+</html>
