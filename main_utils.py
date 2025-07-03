@@ -13,6 +13,8 @@ def classify_with_context(user_input, last_cooking_context):
     prediction = classifier.predict([combined])[0]
     return prediction == "cooking"
 
+#function to generate the response for the user (just basic here, didnt need to use a custom prompt in this instance)
+
 def generate_response(conversation):
     try:
         response = openai.ChatCompletion.create(
