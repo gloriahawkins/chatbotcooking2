@@ -8,12 +8,13 @@ classifier = joblib.load("topic_classifier_final.pkl")
 openai.api_key = os.environ["OPENAI_API_KEY"]
 FINE_TUNED_MODEL = os.environ["FINE_TUNED_MODEL"]
 
+#ensure that it is using the context
 def classify_with_context(user_input, last_cooking_context):
     combined = user_input + " " + last_cooking_context
     prediction = classifier.predict([combined])[0]
     return prediction == "cooking"
 
-#function to generate the response for the user (just basic here, didnt need to use a custom prompt in this instance)
+#function to generate the response using the initalize conversation function for the prompting
 
 def generate_response(conversation):
     try:
