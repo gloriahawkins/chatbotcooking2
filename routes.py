@@ -1,6 +1,7 @@
 from flask import request, render_template, session, redirect, url_for
 from main_utils import classify_with_context, generate_response, initialize_conversation
 
+#routes
 def register_routes(app):
     @app.route("/", methods=["GET", "POST"])
     def index():
@@ -31,6 +32,8 @@ def register_routes(app):
             return redirect(url_for("index"))
 
         return render_template("index.html", conversation=session.get("conversation", []))
+
+#clear the chat 
 
     @app.route("/clear")
     def clear_chat():
