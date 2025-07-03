@@ -2,6 +2,8 @@
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 
+#analyze the ML dataset for classification
+
 def analyze_distributions(train_df, test_df):
     print("\n=== Class Distribution Analysis ===")
 
