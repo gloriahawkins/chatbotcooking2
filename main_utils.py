@@ -1,11 +1,12 @@
 # main_utils.py
 import openai
 import joblib
+import os
 
 # Load classifier and model
 classifier = joblib.load("topic_classifier_final.pkl")
-openai.api_key = "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"
-FINE_TUNED_MODEL = "ft:gpt-4o-mini-2024-07-18:personal:cooking-model:BDk7GJ6r"
+openai.api_key = os.environ["OPENAI_API_KEY"]
+FINE_TUNED_MODEL = os.environ["FINE_TUNED_MODEL"]
 
 def classify_with_context(user_input, last_cooking_context):
     combined = user_input + " " + last_cooking_context
