@@ -12,6 +12,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import joblib
 
+#train and eval different models
 def train_and_evaluate_models(train_df, test_df):
     X_train = train_df["text"]
     y_train = train_df["label"]
@@ -45,7 +46,7 @@ def train_and_evaluate_models(train_df, test_df):
         
 
         acc = accuracy_score(y_test, y_pred)
-        print(f"✅ Accuracy on test set: {acc:.2%}")
+        print(f" Accuracy on test set: {acc:.2%}")
         print(classification_report(y_test, y_pred))
         
           # Generate and plot confusion matrix
@@ -68,5 +69,5 @@ def train_and_evaluate_models(train_df, test_df):
             best_model_name = name
 
     joblib.dump(best_model, "topic_classifier_final.pkl")
-    print(f"\n✅ Best model: {best_model_name} with accuracy {best_score:.2%}")
-    print("✅ Saved as: topic_classifier_final.pkl")
+    print(f"\n Best model: {best_model_name} with accuracy {best_score:.2%}")
+    print(" Saved as: topic_classifier_final.pkl")
